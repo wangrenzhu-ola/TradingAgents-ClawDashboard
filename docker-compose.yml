@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: claw-api
+    ports:
+      - "8000:8000"
+    environment:
+      - CN_API_TOKEN=${CN_API_TOKEN:-claw-secret-token}
+      - JWT_SECRET=${JWT_SECRET:-claw-jwt-secret}
+      - BACKEND_URL=${BACKEND_URL}
+      - DEEP_THINK_LLM=${DEEP_THINK_LLM}
+      - QUICK_THINK_LLM=${QUICK_THINK_LLM}
+    volumes:
+      - ./dataflows/data_cache:/app/dataflows/data_cache
+      - ./eval_results:/app/eval_results
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: claw-dashboard
+    ports:
+      - "8080:80"
+    environment:
+      - VITE_API_URL=/api
+    depends_on:
+      - api
+    restart: unless-stopped
